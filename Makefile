@@ -15,7 +15,7 @@ CFLAGS=-D _DEBUG -ggdb3 -std=c++2a -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-
 	   -fstack-protector -fstrict-overflow -flto-odr-type-merging -fno-omit-frame-pointer 		\
 	   -fPIE $(SANFLAGS) -pie -Wstack-usage=8192
 
-SOURCES=main.cpp Tree.cpp
+SOURCES=main.cpp TreeNode.cpp TreeRoot.cpp
 OBJDIR =./.obj
 OBJECTS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SOURCES))
 EXECUTABLE=Tree
