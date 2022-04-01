@@ -35,6 +35,8 @@ namespace Tree
             size_t  getSize     ();
             size_t  incrSize    ();
             size_t  decrSize    ();
+
+            int     cmp         (const void* a, const void* b);
     };
 
     int defaultDataDump (const void* data, FILE* file);
@@ -61,8 +63,13 @@ namespace Tree
 
             Error   dump        (FILE* file, int (*dataDump) (const void* data, FILE* file) = nullptr);
 
+            Node*   getLeftNode ();
+            Node*   getRightNode();
+
             void*   getData     ();
             void    setData     (void* data);
+
+            void*   search      (void* data, bool create);
     };
 }
 

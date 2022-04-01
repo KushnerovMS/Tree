@@ -11,10 +11,10 @@ int Tree::defaultCmp (const void* a, const void* b)
     return *((const int*) a) - *((const int*) b);
 }
 
-Tree::Root::Root (Tree::Node* rootNode, int (*cmp) (const void* a, const void* b)):
+Tree::Root::Root (Tree::Node* rootNode, int (*comparator) (const void* a, const void* b)):
     rootNode_ (rootNode),
     size_ (1),
-    cmp_ (cmp)
+    cmp_ (comparator)
 {
     if (rootNode == nullptr)
     {
@@ -22,7 +22,7 @@ Tree::Root::Root (Tree::Node* rootNode, int (*cmp) (const void* a, const void* b
         abort ();
     }
 
-    if (cmp == nullptr)
+    if (cmp_ == nullptr)
     {
         Logs.warn ("Tree::Root ctr: comparator has null pointer\n"
                    "Data will be compared as integers");
@@ -66,3 +66,7 @@ size_t Tree::Root::decrSize ()
     return size_ --;
 }
 
+int Tree::Root::cmp (const void* a, const void* b)
+{
+    return cmp_ (a, b);
+}

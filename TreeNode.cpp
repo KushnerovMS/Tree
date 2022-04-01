@@ -80,6 +80,7 @@ Tree::Node::~Node ()
     root_ = nullptr;
 }
 
+
 Tree::Node* Tree::Node::addOnLeft (void* data)
 {
     if (data == nullptr)
@@ -92,6 +93,14 @@ Tree::Node* Tree::Node::addOnLeft (void* data)
     }
     
     left_ = new Tree::Node (root_, data);
+
+    if (left_ == nullptr)
+    {
+        Logs.error ("Tree::Node::addOnLeft: Error of creating");
+        abort ();
+    }
+    
+    root_ -> incrSize ();
 
     return left_;
 }
@@ -109,8 +118,28 @@ Tree::Node* Tree::Node::addOnRight (void* data)
     
     right_ = new Tree::Node (root_, data);
 
+    if (right_ == nullptr)
+    {
+        Logs.error ("Tree::Node::addOnRight: Error of creating");
+        abort ();
+    }
+
+    root_ -> incrSize ();
+
     return right_;
 }
+
+
+Tree::Node* Tree::Node::getLeftNode ()
+{
+    return left_;
+}
+
+Tree::Node* Tree::Node::getRightNode()
+{
+    return right_;
+}
+
 
 Tree::Error Tree::Node::dump (FILE* file, int (*dataDump) (const void* data, FILE* file))
 {
@@ -118,13 +147,13 @@ Tree::Error Tree::Node::dump (FILE* file, int (*dataDump) (const void* data, FIL
 
     Tree::Error err = NO_ERRORS;
 
+    fputc ('{', file);
+
     if (dataDump == nullptr)
         dataDump = defaultDataDump;
 
     if (dataDump (data_, file) != 0)
         err = BAD_DATA;
-
-    putchar (' ');
 
     Tree::Error childErr = NO_ERRORS;
 
@@ -140,6 +169,8 @@ Tree::Error Tree::Node::dump (FILE* file, int (*dataDump) (const void* data, FIL
         if (childErr != NO_ERRORS)
             err = childErr;
     }
+
+    fputc ('}', file);
 
     return err;
 }
@@ -158,6 +189,7 @@ int Tree::defaultDataDump (const void* data, FILE* file)
     }
 }
 
+
 void* Tree::Node::getData ()
 {
     return data_;
@@ -169,3 +201,48 @@ void Tree::Node::setData (void* data)
     Logs.warn ("Tree::Node::setData: Data has null pointer");
 }
 
+
+void* Tree::Node::search (void* data, bool create)
+{
+    Tree::Node* node = this;
+
+    int res = 0;
+
+    for (size_t i = 0; i < root_ -> getSize (); i ++)
+    {
+        res = root_ -> cmp (data, node -> getData ());
+
+        if (res < 0)
+        {
+            if (node -> getLeftNode () != nullptr)
+            {
+                node = node -> getLeftNode ();
+            }
+            else
+            {
+                if (create)
+                    node -> addOnLeft (data);
+                else
+                    return nullptr;
+            }
+        }
+
+        else if (res > 0)
+        {
+            if (node -> getRightNode () != nullptr)
+            {
+                node = node -> getRightNode ();
+            }
+            else
+            {
+                if (create)
+                    node -> addOnRight (data);
+                else
+                    return nullptr;
+            }
+        }
+
+        else
+            return node -> getData ();
+    }
+}
