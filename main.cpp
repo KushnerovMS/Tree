@@ -1,28 +1,33 @@
 #include <new>
+#include <stdlib.h>
+#include <time.h>
 
 #include "lib/Logs.h"
 
-#ifndef LIB_MAKING
 #include "Tree.h"
-#endif
 
 int main ()
 {
-    Tree::Node* rootNode = new (std::nothrow) Tree::Node (new int (5));
+    int a = 10;
+    Tree::Node* rootNode = new (std::nothrow) Tree::Node (&a, sizeof (int));
 
+    char* buff = new char [10];
+    delete [] buff;
     //rootNode -> addOnLeft (new int (4)) -> addOnLeft (new int (2));
+ 
+    srand (time (nullptr));
 
-    rootNode -> search (new int (4), 1);
-    rootNode -> search (new int (8), 1);
-    rootNode -> search (new int (9), 1);
-    rootNode -> search (new int (6), 1);
+    for (int i = 0; i < 20; i ++)
+    {
+        a = rand () % 21;
+        rootNode -> search (&a, true);
+    }
 
+    //FILE* file = fopen ("Dump", "w");
 
-    FILE* file = fopen ("Dump", "w");
+    rootNode -> dump (stdout);
 
-    rootNode -> dump (file);
-
-    fclose (file);
+    //fclose (file);
 
     delete rootNode;
 

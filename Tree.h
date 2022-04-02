@@ -10,7 +10,6 @@ namespace Tree
     {
         NO_ERRORS   = 0,
         BAD_DATA    = 1,
-
     };
 
     int defaultCmp (const void* a, const void* b);
@@ -23,11 +22,12 @@ namespace Tree
 
             size_t size_;
 
+            size_t dataSise_;
             int (*cmp_) (const void* a, const void* b);
 
         public:
 
-            explicit Root (Node* rootNode, int (*cmp) (const void* a, const void* b) = nullptr);
+            explicit Root (Node* rootNode, size_t dataSize, int (*cmp) (const void* a, const void* b) = nullptr);
             ~Root ();
 
             Node*   getRootNode ();
@@ -36,10 +36,11 @@ namespace Tree
             size_t  incrSize    ();
             size_t  decrSize    ();
 
+            size_t  getDataSize ();
             int     cmp         (const void* a, const void* b);
     };
 
-    int defaultDataDump (const void* data, FILE* file);
+    void defaultDataDump (const void* data, FILE* file);
 
     class Node
     {
@@ -54,14 +55,14 @@ namespace Tree
 
         public:
 
-            explicit Node (void* data, int (*cmp) (const void* a, const void* b) = nullptr);
+            explicit Node (void* data, size_t dataSize, int (*cmp) (const void* a, const void* b) = nullptr);
             explicit Node (Root* root, void* data);
             ~Node ();
 
             Node*   addOnLeft   (void* data);
             Node*   addOnRight  (void* data);
 
-            Error   dump        (FILE* file, int (*dataDump) (const void* data, FILE* file) = nullptr);
+            void    dump        (FILE* file, void (*dataDump) (const void* data, FILE* file) = nullptr, size_t level = 0);
 
             Node*   getLeftNode ();
             Node*   getRightNode();
