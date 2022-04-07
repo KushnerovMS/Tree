@@ -163,50 +163,50 @@ void Node::print (FILE* file, PRINT_MODE mode, bool compact, void (*dataDump) (F
     assert (file);
     assert (dataDump);
 
+#define NEW_LINE    if (! compact) fputc ('\n', file);
+#define BEGIN_SEP   fprintf (file, "%s", beginSep);
+#define END_SEP     fprintf (file, "%s", endSep);
+#define GO_ON_LEVEL(lev) fprintf (file, "%*s", (lev) * 4 * (! compact), "");
+
     if (left_ == 0 && right_ == 0) 
     {
-        fprintf (file, "%*s%s", level * 4 * (! compact), "", beginSep);
-
+        GO_ON_LEVEL (level) BEGIN_SEP
         dataDump (file, data_);
-
-        fprintf (file, "%s", endSep);
-        if (! compact) fputc ('\n', file);
+        END_SEP NEW_LINE
     }
 
     else
     {
-        fprintf (file, "%*s%s", level * 4 * (! compact), "", beginSep);
+        GO_ON_LEVEL(level)  BEGIN_SEP
         if (mode == PRINT_MODE::PRE_ORDER) dataDump (file, data_);
-        if (! compact) fputc ('\n', file);
+        NEW_LINE
 
         if (left_)
             left_ -> print (file, mode, compact, dataDump, beginSep, endSep, level + 1); 
         else
         {
-            fprintf (file, "%*s%s%s", (level + 1) * 4 * (! compact), "", beginSep, endSep);
-            if (! compact) fputc ('\n', file);
+            GO_ON_LEVEL(level + 1)  BEGIN_SEP END_SEP  NEW_LINE
         }
 
         if (mode == PRINT_MODE::IN_ORDER)
         {
-            fprintf (file, "%*s", level * 4 * (! compact), "");
+            GO_ON_LEVEL(level)
             dataDump (file, data_);
-            if (! compact) fputc ('\n', file);
+            NEW_LINE
         }
 
         if (right_)
             right_ -> print (file, mode, compact, dataDump, beginSep, endSep, level + 1); 
         else
         {
-            fprintf (file, "%*s%s%s", (level + 1) * 4 * (! compact), "", beginSep, endSep);
-            if (! compact) fputc ('\n', file);
+            GO_ON_LEVEL(level + 1)  BEGIN_SEP END_SEP  NEW_LINE
         }
 
-        fprintf (file, "%*s", level * 4 * (! compact), "");
+        GO_ON_LEVEL(level)
         if (mode == PRINT_MODE::POST_ORDER) dataDump (file, data_);
 
-        fprintf (file, "%s", endSep);
-        if (! compact || level == 0) fputc ('\n', file);
+        END_SEP
+        NEW_LINE else if (level == 0) fputc ('\n', file);
     }
 }
 
