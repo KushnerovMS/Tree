@@ -42,3 +42,7 @@ $(OBJDIR) :
 
 clear:
 	rm -r -d $(OBJDIR)
+
+run : $(EXECUTABLE)
+	
+	$(EXEDIR)/$(EXECUTABLE)

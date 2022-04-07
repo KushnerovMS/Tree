@@ -9,18 +9,26 @@
 
 using namespace Tree;
 
-Node::Node (void* data, size_t dataSize, int (*cmp) (const void* a, const void* b)):
-    data_ (new char [dataSize]),
+Node::Node (void* data, size_t dataSize, bool destructDataWhileDestructing, int (*cmp) (const void* a, const void* b)):
+    data_ (nullptr),
 
     left_ (nullptr),
     right_ (nullptr),
 
-    root_ (new Root (this, dataSize, cmp))
+    root_ (new Root (this, dataSize, destructDataWhileDestructing, cmp))
 {
     if (data == nullptr)
-        Logs.warn ("Node crt:: Data_ has null pointer");
+        Logs.warn ("Tree::Node crt:: Data has null pointer");
     else
-        memcpy (data_, data, dataSize);
+    {
+        if (dataSize > 0)
+        {
+            data_ = new char [dataSize];
+            memcpy (data_, data, dataSize);
+        }
+        else
+            data_ = data;
+    }
 
     if (root_ == nullptr)
     {
@@ -33,26 +41,29 @@ Node::Node (void* data, size_t dataSize, int (*cmp) (const void* a, const void* 
         Logs.error ("Node was not constructed");
         abort ();
     }
-
 }
 
 Node::Node (Root* root, void* data):
-    data_ (new char [root -> getDataSize ()]),
+    data_ (),
 
     left_ (nullptr),
     right_ (nullptr),
 
     root_ (root)
 {
+    assert (root);
+
     if (data == nullptr)
         Logs.warn ("Node crt: Data_ has null pointer");
     else
-        memcpy (data_, data, root_ -> getDataSize ());
-
-    if (root_ == nullptr)
     {
-        Logs.error ("Node crt: Tree root has null pointer");
-        abort ();
+        if (root -> getDataSize () > 0)
+        {
+            data_ = new char [root_ -> getDataSize ()];
+            memcpy (data_, data, root_ -> getDataSize ());
+        }
+        else
+            data_ = data;
     }
 
     if (this == nullptr)
@@ -62,7 +73,6 @@ Node::Node (Root* root, void* data):
     }
 
     root -> incrSize ();
-
 }
 
 Node::~Node ()
@@ -74,8 +84,8 @@ Node::~Node ()
         delete right_;
 
     Logs.trace ("Dtor: Data = %p", data_);
-    if (data_ != nullptr)
-        delete [] ((char*) data_);
+    if (data_ != nullptr && (root_ -> getDataSize () != 0 || root_ -> isDestructDataWhileDestructing ()))
+        delete [] (data_);
     data_ = nullptr;
 
     left_ = nullptr;
@@ -89,53 +99,51 @@ Node::~Node ()
     root_ = nullptr;
 }
 
-
-Node* Node::addOnLeft (void* data)
+Root* Node::getRoot ()
 {
-    if (data == nullptr)
-        Logs.warn ("Node::addOnLeft: Data has null pointer");
+    return root_;
+}
+
+Node* Node::addOnLeft (Node* node)
+{
+    assert (node);
 
     if (left_ != nullptr)
     {
-        Logs.error ("Node::AddonLeft: There is already tree on the left with pointer %p", left_);
+        Logs.error ("Node::AddOnLeft: There is already tree on the left with pointer %p", left_);
         abort ();
     }
-    
-    left_ = new Node (root_, data);
 
-    if (left_ == nullptr)
+    if (node -> getRoot () != root_)
     {
-        Logs.error ("Node::addOnLeft: Error of creating");
-        abort ();
+        Logs.error ("Node::AddonLeft: Nodes has different roots");
+        return nullptr;
     }
-    
-    root_ -> incrSize ();
 
-    return left_;
+    left_ = node;
+    
+    return node;
 }
 
-Node* Node::addOnRight (void* data)
+Node* Node::addOnRight (Node* node)
 {
-    if (data == nullptr)
-        Logs.warn ("Node::addOnRight: Data has null pointer");
+    assert (node);
 
     if (right_ != nullptr)
     {
-        Logs.error ("Node::AddonRight: There is already tree on the right with pointer %p", left_);
+        Logs.error ("Node::Addonright: There is already tree on the right with pointer %p", right_);
         abort ();
     }
-    
-    right_ = new Node (root_, data);
 
-    if (right_ == nullptr)
+    if (node -> getRoot () != root_)
     {
-        Logs.error ("Node::addOnRight: Error of creating");
-        abort ();
+        Logs.error ("Node::AddonRight: Nodes has different roots");
+        return nullptr;
     }
 
-    root_ -> incrSize ();
-
-    return right_;
+    right_ = node;
+    
+    return node;
 }
 
 
@@ -150,46 +158,59 @@ Node* Node::getRightNode()
 }
 
 
-void Node::dump (FILE* file, void (*dataDump) (const void* data, FILE* file), size_t level)
+void Node::print (FILE* file, PRINT_MODE mode, bool compact, void (*dataDump) (FILE* file, const void* data), const char* beginSep, const char* endSep, size_t level)
 {
     assert (file);
+    assert (dataDump);
 
-    if (dataDump == nullptr)
-        dataDump = defaultDataDump;
-
-    fprintf (file, "%*s{", level * 4, "");
-    
-
-    if (left_ != nullptr)
+    if (left_ == 0 && right_ == 0) 
     {
-        fputc ('\n', file);
-        left_ -> dump (file, dataDump, level + 1); 
-        fputc ('\n', file);
+        fprintf (file, "%*s%s", level * 4 * (! compact), "", beginSep);
+
+        dataDump (file, data_);
+
+        fprintf (file, "%s", endSep);
+        if (! compact) fputc ('\n', file);
     }
-    else if (right_ != nullptr)
-        fputc ('\n', file);
 
-
-    if (left_ != nullptr || right_ != nullptr)
-        fprintf (file, "%*s", level * 4, "");
-
-    dataDump (data_, file);
-
-
-    if (right_ != nullptr)
+    else
     {
-        fputc ('\n', file);
-        right_ -> dump (file, dataDump, level + 1); 
-        fprintf (file, "\n%*s", level * 4, "");
+        fprintf (file, "%*s%s", level * 4 * (! compact), "", beginSep);
+        if (mode == PRINT_MODE::PRE_ORDER) dataDump (file, data_);
+        if (! compact) fputc ('\n', file);
+
+        if (left_)
+            left_ -> print (file, mode, compact, dataDump, beginSep, endSep, level + 1); 
+        else
+        {
+            fprintf (file, "%*s%s%s", (level + 1) * 4 * (! compact), "", beginSep, endSep);
+            if (! compact) fputc ('\n', file);
+        }
+
+        if (mode == PRINT_MODE::IN_ORDER)
+        {
+            fprintf (file, "%*s", level * 4 * (! compact), "");
+            dataDump (file, data_);
+            if (! compact) fputc ('\n', file);
+        }
+
+        if (right_)
+            right_ -> print (file, mode, compact, dataDump, beginSep, endSep, level + 1); 
+        else
+        {
+            fprintf (file, "%*s%s%s", (level + 1) * 4 * (! compact), "", beginSep, endSep);
+            if (! compact) fputc ('\n', file);
+        }
+
+        fprintf (file, "%*s", level * 4 * (! compact), "");
+        if (mode == PRINT_MODE::POST_ORDER) dataDump (file, data_);
+
+        fprintf (file, "%s", endSep);
+        if (! compact || level == 0) fputc ('\n', file);
     }
-    else if (left_ != nullptr)
-        fprintf (file, "\n%*s", level * 4, "");
-
-
-    fprintf (file, "}");
 }
 
-void Tree::defaultDataDump (const void* data, FILE* file)
+void Tree::defaultDataDump (FILE* file, const void* data)
 {
     if (data)
         fprintf (file, "%d", *((const int*) data));
@@ -205,9 +226,18 @@ void* Node::getData ()
 
 void Node::setData (void* data)
 {
-    assert (data);
 
-    memcpy (data_, data, root_ -> getDataSize ());
+    if (root_ -> getDataSize () != 0)
+    {
+        if (data != nullptr)
+            memcpy (data_, data, root_ -> getDataSize ());
+        else
+        {
+            memset (data_, 0, root_ -> getDataSize ());
+        }
+    }
+    else
+        data_ = data;
 }
 
 
@@ -230,7 +260,7 @@ void* Node::search (void* data, bool create)
             else
             {
                 if (create)
-                    node -> addOnLeft (data);
+                    return node -> addOnLeft (new Node (root_, data)) -> getData ();
                 else
                     return nullptr;
             }
@@ -245,13 +275,15 @@ void* Node::search (void* data, bool create)
             else
             {
                 if (create)
-                    node -> addOnRight (data);
+                    return node -> addOnRight (new Node (root_, data)) -> getData ();
                 else
                     return nullptr;
             }
         }
 
         else
+        {
             return node -> getData ();
+        }
     }
 }

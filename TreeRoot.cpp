@@ -13,11 +13,16 @@ int Tree::defaultCmp (const void* a, const void* b)
     return *((const int*) a) - *((const int*) b);
 }
 
-Root::Root (Node* rootNode, size_t dataSize, int (*comparator) (const void* a, const void* b)):
+Root::Root (Node* rootNode,
+            size_t dataSize,
+            bool destructDataWhileDestructing,
+            int (*comparator) (const void* a, const void* b)
+            ):
     rootNode_ (rootNode),
     size_ (1),
-    dataSise_ (dataSize),
-    cmp_ (comparator)
+    cmp_ (comparator),
+    dataSize_ (dataSize),
+    destructDataWhileDestructing_ (destructDataWhileDestructing)
 {
     if (rootNode == nullptr)
     {
@@ -42,6 +47,9 @@ Root::Root (Node* rootNode, size_t dataSize, int (*comparator) (const void* a, c
 Root::~Root ()
 {
     rootNode_ = nullptr;
+    size_ = 0;
+    dataSize_ = 0;
+    cmp_ = nullptr;
 }
 
 Node* Root::getRootNode ()
@@ -71,7 +79,12 @@ size_t Root::decrSize ()
 
 size_t Root::getDataSize ()
 {
-    return dataSise_;
+    return dataSize_;
+}
+
+bool Root::isDestructDataWhileDestructing ()
+{
+    return destructDataWhileDestructing_;
 }
 
 int Root::cmp (const void* a, const void* b)
