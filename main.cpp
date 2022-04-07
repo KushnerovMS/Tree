@@ -11,8 +11,6 @@ int main ()
     int a = 10;
     Tree::Node* rootNode = new (std::nothrow) Tree::Node (&a, sizeof (int));
 
-    char* buff = new char [10];
-    delete [] buff;
     //rootNode -> addOnLeft (new int (4)) -> addOnLeft (new int (2));
  
     srand (time (nullptr));
@@ -25,7 +23,10 @@ int main ()
 
     //FILE* file = fopen ("Dump", "w");
 
-    rootNode -> dump (stdout);
+    rootNode -> print (stdout, Tree::Node::PRINT_MODE::IN_ORDER, true);
+    rootNode -> print (stdout, Tree::Node::PRINT_MODE::IN_ORDER);
+
+    printf ("%p %p\n", rootNode -> getLeftNode (), rootNode -> getRightNode ());
 
     //fclose (file);
 

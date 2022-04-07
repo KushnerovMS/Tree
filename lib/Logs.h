@@ -13,22 +13,22 @@ class Logs
 
     public:
 
-        explicit Logs ();
-        explicit Logs (const char* name);
+        explicit Logs       ();
+        explicit Logs       (const char* name);
 
         ~Logs ();
         
         
-        void error  (const char* frmt, ...);
-        void warn   (const char* frmt, ...);
-        void debug  (const char* frmt, ...);
-        void trace  (const char* frmt, ...);
+        void    error       (const char* fmt, ...);
+        void    warn        (const char* fmt, ...);
+        void    debug       (const char* fmt, ...);
+        void    trace       (const char* fmt, ...);
 
-        void print  (const char* frmt, ...);
+        void    print       (const char* fmt, ...);
 
-    private:
+        FILE*   getFile     ();
 
-        char* getTimeString_ (char* buf);
+        char*   getTimeString (char* buf);
 };
 
 extern Logs Logs;
