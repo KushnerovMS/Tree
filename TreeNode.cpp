@@ -44,7 +44,7 @@ Node::Node (void* data, size_t dataSize, bool destructDataWhileDestructing, int 
 }
 
 Node::Node (Root* root, void* data):
-    data_ (),
+    data_ (nullptr),
 
     left_ (nullptr),
     right_ (nullptr),
@@ -63,6 +63,7 @@ Node::Node (Root* root, void* data):
             memcpy (data_, data, root_ -> getDataSize ());
         }
         else
+        
             data_ = data;
     }
 
@@ -83,9 +84,8 @@ Node::~Node ()
     if (right_ != nullptr)
         delete right_;
 
-    Logs.trace ("Dtor: Data = %p", data_);
-    if (data_ != nullptr && (root_ -> getDataSize () != 0 || root_ -> isDestructDataWhileDestructing ()))
-        delete [] (data_);
+    if (data_ != nullptr && (root_ -> getDataSize () >= 0 || root_ -> isDestructDataWhileDestructing ()))
+        delete data_;
     data_ = nullptr;
 
     left_ = nullptr;
@@ -104,17 +104,9 @@ Root* Node::getRoot ()
     return root_;
 }
 
-Node* Node::addOnLeft (Node* node)
+Node* Node::setLeftNode (Node* node)
 {
-    assert (node);
-
-    if (left_ != nullptr)
-    {
-        Logs.error ("Node::AddOnLeft: There is already tree on the left with pointer %p", left_);
-        abort ();
-    }
-
-    if (node -> getRoot () != root_)
+    if (node != nullptr && node -> getRoot () != root_)
     {
         Logs.error ("Node::AddonLeft: Nodes has different roots");
         return nullptr;
@@ -125,19 +117,11 @@ Node* Node::addOnLeft (Node* node)
     return node;
 }
 
-Node* Node::addOnRight (Node* node)
+Node* Node::setRightNode (Node* node)
 {
-    assert (node);
-
-    if (right_ != nullptr)
+    if (node != nullptr && node -> getRoot () != root_)
     {
-        Logs.error ("Node::Addonright: There is already tree on the right with pointer %p", right_);
-        abort ();
-    }
-
-    if (node -> getRoot () != root_)
-    {
-        Logs.error ("Node::AddonRight: Nodes has different roots");
+        Logs.error ("Node::AddonLeft: Nodes has different roots");
         return nullptr;
     }
 
@@ -208,6 +192,92 @@ void Node::print (FILE* file, PRINT_MODE mode, bool compact, void (*dataDump) (F
         END_SEP
         NEW_LINE else if (level == 0) fputc ('\n', file);
     }
+
+#undef NEW_LINE
+#undef BEGIN_SEP
+#undef END_SEP
+#undef GO_ON_LEVEL
+}
+
+void skipForChar_ (FILE* file, char c)
+{
+    int curr = fgetc (file);
+
+    while (curr != EOF && curr != c)
+        curr = fgetc (file);
+
+    ungetc (curr, file);
+    printf ("%c\n", curr);
+}
+
+void skipSpaces_ (FILE* file)
+{
+    int curr = fgetc (file);
+
+    while (curr != EOF && (curr == ' ' || curr == '\n'))
+        curr = fgetc (file);
+
+    ungetc (curr, file);
+}
+
+Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), char beginSep, char endSep)
+{
+    assert (file);
+    assert (dataRead);
+
+    skipForChar_ (file, beginSep);
+    fgetc (file);
+    char c = fgetc (file);
+    printf ("%c\n", c);
+
+    if (c == endSep)
+        return nullptr;
+
+    else
+    {
+        ungetc (c, file);
+
+        if (mode == PRINT_MODE::PRE_ORDER)
+            data_ = dataRead (file);
+
+        c = getc (file);
+        if (c == endSep)
+            return this;
+
+        ungetc (c, file);
+
+        skipForChar_ (file, beginSep);
+
+        Node* leftNode = new Node (root_, nullptr);
+        left_ = leftNode -> read (file, mode, dataRead, beginSep, endSep);
+        if (left_ == nullptr) delete leftNode;
+
+        if (mode == PRINT_MODE::IN_ORDER)
+        {
+            skipSpaces_ (file);
+            data_ = dataRead (file);
+        }
+
+        skipForChar_ (file, beginSep);
+
+        Node* rightNode = new Node (root_, nullptr);
+        right_ = rightNode -> read (file, mode, dataRead, beginSep, endSep);
+        if (right_ == nullptr) delete rightNode;
+
+        if (mode == PRINT_MODE::POST_ORDER)
+        {
+            skipSpaces_ (file);
+            data_ = dataRead (file);
+        }
+
+        skipForChar_ (file, endSep);
+        fgetc (file);
+
+        return this;
+        
+    }
+
+    return nullptr;
 }
 
 void Tree::defaultDataDump (FILE* file, const void* data)
@@ -218,6 +288,15 @@ void Tree::defaultDataDump (FILE* file, const void* data)
         fprintf (file, "");
 }
 
+void* Tree::defaultDataRead (FILE* file)
+{
+    void* data = new int (0);
+    char c = fgetc (file);
+    ungetc (c, file);
+    printf ("%c\n", c);
+    fscanf (file, "%d", data);
+    return data;
+}
 
 void* Node::getData ()
 {
@@ -260,7 +339,7 @@ void* Node::search (void* data, bool create)
             else
             {
                 if (create)
-                    return node -> addOnLeft (new Node (root_, data)) -> getData ();
+                    return node -> setLeftNode (new Node (root_, data)) -> getData ();
                 else
                     return nullptr;
             }
@@ -275,7 +354,7 @@ void* Node::search (void* data, bool create)
             else
             {
                 if (create)
-                    return node -> addOnRight (new Node (root_, data)) -> getData ();
+                    return node -> setRightNode (new Node (root_, data)) -> getData ();
                 else
                     return nullptr;
             }

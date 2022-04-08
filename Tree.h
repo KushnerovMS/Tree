@@ -47,6 +47,15 @@ namespace Tree
     };
 
     void defaultDataDump (FILE* file, const void* data);
+    void* defaultDataRead (FILE* file);
+
+    enum PRINT_MODE
+    {
+        PRE_ORDER   = 0,
+        IN_ORDER    = 1,
+        POST_ORDER  = 2
+
+    };
 
     class Node
     {
@@ -68,16 +77,9 @@ namespace Tree
             explicit Node (Root* root, void* data);
             ~Node ();
 
-            Node*   addOnLeft   (Node* node);
-            Node*   addOnRight  (Node* node);
+            Node*   setLeftNode   (Node* node);
+            Node*   setRightNode  (Node* node);
 
-            enum PRINT_MODE
-            {
-                PRE_ORDER   = 0,
-                IN_ORDER    = 1,
-                POST_ORDER  = 2
-
-            };
 
             void    print       (FILE* file,
                                  PRINT_MODE mode,
@@ -86,6 +88,12 @@ namespace Tree
                                  const char* beginSeparator = "{",
                                  const char* endSeparator = "}",
                                  size_t level = 0);
+            
+            Node*   read        (FILE* file,
+                                 PRINT_MODE mode,
+                                 void* (*dataRead) (FILE* file) = defaultDataRead,
+                                 char beginSeparator = '{',
+                                 char endSeparator = '}');
 
             Root*   getRoot     ();
             Node*   getLeftNode ();

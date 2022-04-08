@@ -9,7 +9,7 @@
 int main ()
 {
     int a = 10;
-    Tree::Node* rootNode = new (std::nothrow) Tree::Node (&a, sizeof (int));
+    Tree::Node* rootNode = new Tree::Node (&a, sizeof (int));
 
     //rootNode -> addOnLeft (new int (4)) -> addOnLeft (new int (2));
  
@@ -21,16 +21,28 @@ int main ()
         rootNode -> search (&a, true);
     }
 
-    //FILE* file = fopen ("Dump", "w");
+    FILE* file = fopen ("Dump", "w");
 
-    rootNode -> print (stdout, Tree::Node::PRINT_MODE::IN_ORDER, true);
-    rootNode -> print (stdout, Tree::Node::PRINT_MODE::IN_ORDER);
+    rootNode -> print (stdout, Tree::PRINT_MODE::PRE_ORDER);
+    rootNode -> print (file, Tree::PRINT_MODE::PRE_ORDER);
 
-    printf ("%p %p\n", rootNode -> getLeftNode (), rootNode -> getRightNode ());
-
-    //fclose (file);
+    fclose (file);
 
     delete rootNode;
+
+    rootNode = new Tree::Node (nullptr, 0, true);
+    
+    file = fopen ("Dump", "r");
+
+    rootNode -> read (file, Tree::PRINT_MODE::PRE_ORDER);
+
+    fclose (file);
+
+
+    rootNode -> print (stdout, Tree::PRINT_MODE::PRE_ORDER);
+
+    delete rootNode;
+
 
     putchar ('\n');
 
