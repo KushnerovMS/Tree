@@ -8,29 +8,27 @@
 
 int main ()
 {
-    int a = 10;
+
+    int a = 100;
     Tree::Node* rootNode = new Tree::Node (&a, sizeof (int));
 
-    //rootNode -> addOnLeft (new int (4)) -> addOnLeft (new int (2));
- 
     srand (time (nullptr));
 
-    for (int i = 0; i < 20; i ++)
+    for (int i = 0; i < 200; i ++)
     {
-        a = rand () % 21;
+        a = rand () % 200;
         rootNode -> search (&a, true);
     }
 
     FILE* file = fopen ("Dump", "w");
 
-    rootNode -> print (stdout, Tree::PRINT_MODE::PRE_ORDER);
     rootNode -> print (file, Tree::PRINT_MODE::PRE_ORDER);
 
     fclose (file);
 
     delete rootNode;
 
-    rootNode = new Tree::Node (nullptr, 0, true);
+    rootNode = new Tree::Node (nullptr, sizeof (void*));
     
     file = fopen ("Dump", "r");
 
@@ -41,8 +39,11 @@ int main ()
 
     rootNode -> print (stdout, Tree::PRINT_MODE::PRE_ORDER);
 
-    delete rootNode;
+    rootNode -> dump (Tree::PRINT_MODE::PRE_ORDER);
 
+    rootNode -> graphDump ("testDump.svg");
+
+    delete rootNode;
 
     putchar ('\n');
 

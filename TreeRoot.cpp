@@ -15,27 +15,15 @@ int Tree::defaultCmp (const void* a, const void* b)
 
 Root::Root (Node* rootNode,
             size_t dataSize,
-            bool destructDataWhileDestructing,
             int (*comparator) (const void* a, const void* b)
             ):
     rootNode_ (rootNode),
     size_ (1),
     cmp_ (comparator),
-    dataSize_ (dataSize),
-    destructDataWhileDestructing_ (destructDataWhileDestructing)
+    dataSize_ (dataSize)
 {
-    if (rootNode == nullptr)
-    {
-        Logs.error ("Root crt: RootNode has null pointer", __func__);
-        abort ();
-    }
-
-    if (cmp_ == nullptr)
-    {
-        Logs.warn ("Root ctr: comparator has null pointer\n"
-                   "Data will be compared as integers");
-        cmp_ = defaultCmp;
-    }
+    assert (rootNode);
+    assert (comparator);
 
     if (this == nullptr)
     {
@@ -82,10 +70,6 @@ size_t Root::getDataSize ()
     return dataSize_;
 }
 
-bool Root::isDestructDataWhileDestructing ()
-{
-    return destructDataWhileDestructing_;
-}
 
 int Root::cmp (const void* a, const void* b)
 {

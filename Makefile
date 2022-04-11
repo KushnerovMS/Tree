@@ -1,4 +1,5 @@
-CC=g++
+RM=rm -r -d
+
 SANFLAGS=-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 CFLAGS=-D _DEBUG -ggdb3 -std=c++2a -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-optimizations   \
@@ -15,34 +16,51 @@ CFLAGS=-D _DEBUG -ggdb3 -std=c++2a -O0 -Wall -Wextra -Weffc++ -Waggressive-loop-
 	   -fstack-protector -fstrict-overflow -flto-odr-type-merging -fno-omit-frame-pointer 		\
 	   -fPIE $(SANFLAGS) -pie -Wstack-usage=8192
 
-SOURCES=main.cpp TreeNode.cpp TreeRoot.cpp
+SOURCES=main.cpp						\
+		TreeNode/CtorDtor.cpp			\
+		TreeNode/GettersSetters.cpp		\
+		TreeNode/SearchValidate.cpp 	\
+		TreeNode/TextDump.cpp 			\
+		TreeNode/GraphDump.cpp 			\
+		TreeRoot.cpp 					\
+		TreeError.cpp
 OBJDIR =./.obj
 OBJECTS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SOURCES))
+#OBJDIRS=$(sort 							\
+		$(addprefix $(OBJMAINDIR)/,		\
+		$(filter-out ./,				\
+		$(dir $(SOURCES))))				\
+		$(OBJMAINDIR))
 EXECUTABLE=Tree
 EXEDIR=./bin
-LIBRARIES=libLogs.a
+LIBRARIES=libLogs.a libGraphDump.a
 LIBDIR=./lib
 
 
 $(EXECUTABLE): $(OBJECTS) $(EXEDIR)
-	$(CC) $(SANFLAGS) $(OBJECTS) -o $(EXEDIR)/$@ -L $(LIBDIR) $(patsubst lib%.a, -l%, $(LIBRARIES))
+	$(CXX) $(SANFLAGS) $(OBJECTS) -o $(EXEDIR)/$@ -L $(LIBDIR) $(patsubst lib%.a, -l%, $(LIBRARIES))
 
 
-$(OBJECTS) : $(OBJDIR)/%.o : %.cpp $(OBJDIR) 
-	$(CC) -c $(CFLAGS) $< -o $@
+$(OBJECTS) : $(OBJDIR)/%.o : %.cpp
+	mkdir -p $(@D)
+	$(CXX) -c $(CFLAGS) $< -o $@
 
 lib$(EXECUTABLE).a : $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
-	ar r lib$(EXECUTABLE).a $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
+	$(AR) r lib$(EXECUTABLE).a $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
+
+#$(sort 							\
+$(addprefix $(OBJDIR)/,			\
+$(filter-out ./,				\
+$(dir $(SOURCES))))				\
+$(OBJDIR)/) : % :
+#	mkdir -p $@
+
 
 $(EXEDIR) :
 	mkdir $(EXEDIR)
 
-$(OBJDIR) :
-	mkdir $(OBJDIR)
-
 clear:
-	rm -r -d $(OBJDIR)
+	$(RM) $(OBJDIR)
 
 run : $(EXECUTABLE)
-	
 	$(EXEDIR)/$(EXECUTABLE)
