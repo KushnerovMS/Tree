@@ -9,27 +9,6 @@
 using namespace Tree;
 
 
-void skipForChar_ (FILE* file, char c)
-{
-    int curr = fgetc (file);
-
-    while (curr != EOF && curr != c)
-        curr = fgetc (file);
-
-    ungetc (curr, file);
-}
-
-void skipSpaces_ (FILE* file)
-{
-    int curr = fgetc (file);
-
-    while (curr != EOF && (curr == ' ' || curr == '\n'))
-        curr = fgetc (file);
-
-    ungetc (curr, file);
-}
-
-
 Error Node::print (FILE* file, PRINT_MODE mode, bool compact, void (*dataDump) (FILE* file, const void* data), const char* beginSep, const char* endSep, size_t level)
 {
     assert (file);
@@ -146,32 +125,54 @@ Error Node::dump (PRINT_MODE mode,
     return err;
 }
 
+
+#define SKIP_SPACES                                     \
+{                                                       \
+    curr = fgetc (file);                                \
+                                                        \
+    while (curr != EOF && (curr == ' ' || curr == '\n'))\
+        curr = fgetc (file);                            \
+                                                        \
+    ungetc (curr, file);                                \
+}
+
+#define SKIP_FOR_CHAR(c)                \
+{                                       \
+    curr = fgetc (file);                \
+                                        \
+    while (curr != EOF && curr != c)    \
+        curr = fgetc (file);            \
+                                        \
+    ungetc (curr, file);                \
+}
+
 Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), char beginSep, char endSep)
 {
     assert (file);
     assert (dataRead);
 
-    skipForChar_ (file, beginSep);
+    int curr = 0;
+
+    SKIP_FOR_CHAR (beginSep);
     fgetc (file);
-    char c = fgetc (file);
+    curr = fgetc (file);
 
-    if (c == endSep)
+    if (curr == endSep)
         return nullptr;
-
     else
     {
-        ungetc (c, file);
+        ungetc (curr, file);
 
         if (mode == PRINT_MODE::PRE_ORDER)
             data_ = dataRead (file);
 
-        c = getc (file);
-        if (c == endSep)
+        curr = getc (file);
+        if (curr == endSep)
             return this;
 
-        ungetc (c, file);
+        ungetc (curr, file);
 
-        skipForChar_ (file, beginSep);
+        SKIP_FOR_CHAR (beginSep);
 
         Node* leftNode = new Node (root_, nullptr);
         left_ = leftNode -> read (file, mode, dataRead, beginSep, endSep);
@@ -179,11 +180,11 @@ Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), c
 
         if (mode == PRINT_MODE::IN_ORDER)
         {
-            skipSpaces_ (file);
+            SKIP_SPACES;
             data_ = dataRead (file);
         }
 
-        skipForChar_ (file, beginSep);
+        SKIP_FOR_CHAR (beginSep);
 
         Node* rightNode = new Node (root_, nullptr);
         right_ = rightNode -> read (file, mode, dataRead, beginSep, endSep);
@@ -191,17 +192,15 @@ Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), c
 
         if (mode == PRINT_MODE::POST_ORDER)
         {
-            skipSpaces_ (file);
+            SKIP_SPACES;
             data_ = dataRead (file);
         }
 
-        skipForChar_ (file, endSep);
+        SKIP_FOR_CHAR (endSep);
         fgetc (file);
 
         return this;
-        
     }
-
     return nullptr;
 }
 
@@ -215,7 +214,7 @@ void Tree::defaultDataDump (FILE* file, const void* data)
 
 void* Tree::defaultDataRead (FILE* file)
 {
-    int* data = new int (0);
+    int* data = new int[1];
     fscanf (file, "%d", (int*) data);
     return data;
 }

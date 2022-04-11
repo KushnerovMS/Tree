@@ -75,6 +75,7 @@ Node::Node (Root* root, void* data):
     root -> incrSize ();
 }
 
+
 Node::~Node ()
 {
     if (left_ != nullptr)
@@ -84,7 +85,7 @@ Node::~Node ()
         delete right_;
 
     if (data_ != nullptr && root_ -> getDataSize () >= 0)
-        delete data_;
+        delete[] (char*)data_;
     data_ = nullptr;
 
     left_ = nullptr;

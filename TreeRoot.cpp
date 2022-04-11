@@ -22,8 +22,8 @@ Root::Root (Node* rootNode,
     cmp_ (comparator),
     dataSize_ (dataSize)
 {
-    assert (rootNode);
     assert (comparator);
+    assert (rootNode);
 
     if (this == nullptr)
     {

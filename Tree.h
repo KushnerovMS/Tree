@@ -95,6 +95,8 @@ namespace Tree
                            size_t dataSize,
                            int (*cmp) (const void* a, const void* b) = defaultCmp);
             explicit Node (Root* root, void* data);
+
+
             ~Node ();
 
             Error   notOK (size_t counter = 0);
