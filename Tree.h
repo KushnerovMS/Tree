@@ -68,7 +68,7 @@ namespace Tree
     };
 
     void defaultDataDump (FILE* file, const void* data);
-    void* defaultDataRead (FILE* file);
+    void* defaultDataRead (FILE* file, void* data);
 
     enum PRINT_MODE
     {
@@ -126,7 +126,7 @@ namespace Tree
             
             Node*   read        (FILE* file,
                                  PRINT_MODE mode,
-                                 void* (*dataRead) (FILE* file) = defaultDataRead,
+                                 void* (*dataRead) (FILE* file, void* data) = defaultDataRead,
                                  char beginSeparator = '{',
                                  char endSeparator = '}');
 
@@ -137,7 +137,7 @@ namespace Tree
             void*   getData     ();
             void    setData     (void* data);
 
-            void*   search      (void* data, bool create);
+            Node*   search      (void* data, bool create);
     };
 }
 

@@ -146,7 +146,7 @@ Error Node::dump (PRINT_MODE mode,
     ungetc (curr, file);                \
 }
 
-Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), char beginSep, char endSep)
+Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file, void* data), char beginSep, char endSep)
 {
     assert (file);
     assert (dataRead);
@@ -164,7 +164,7 @@ Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), c
         ungetc (curr, file);
 
         if (mode == PRINT_MODE::PRE_ORDER)
-            data_ = dataRead (file);
+            data_ = dataRead (file, data_);
 
         curr = getc (file);
         if (curr == endSep)
@@ -181,7 +181,7 @@ Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), c
         if (mode == PRINT_MODE::IN_ORDER)
         {
             SKIP_SPACES;
-            data_ = dataRead (file);
+            data_ = dataRead (file, data_);
         }
 
         SKIP_FOR_CHAR (beginSep);
@@ -193,7 +193,7 @@ Node* Node::read (FILE* file, PRINT_MODE mode, void* (*dataRead) (FILE* file), c
         if (mode == PRINT_MODE::POST_ORDER)
         {
             SKIP_SPACES;
-            data_ = dataRead (file);
+            data_ = dataRead (file, data_);
         }
 
         SKIP_FOR_CHAR (endSep);
@@ -212,9 +212,8 @@ void Tree::defaultDataDump (FILE* file, const void* data)
         fprintf (file, "");
 }
 
-void* Tree::defaultDataRead (FILE* file)
+void* Tree::defaultDataRead (FILE* file, void* data)
 {
-    int* data = new int[1];
     fscanf (file, "%d", (int*) data);
     return data;
 }

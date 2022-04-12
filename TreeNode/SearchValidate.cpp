@@ -57,7 +57,7 @@ Error Node::notOK (size_t counter)
     return err;
 }
 
-void* Node::search (void* data, bool create)
+Node* Node::search (void* data, bool create)
 {
     Node* node = this;
 
@@ -70,13 +70,11 @@ void* Node::search (void* data, bool create)
         if (res < 0)
         {
             if (node -> getLeftNode () != nullptr)
-            {
                 node = node -> getLeftNode ();
-            }
             else
             {
                 if (create)
-                    return node -> setLeftNode (new Node (root_, data)) -> getData ();
+                    return node -> setLeftNode (new Node (root_, data));
                 else
                     return nullptr;
             }
@@ -85,13 +83,11 @@ void* Node::search (void* data, bool create)
         else if (res > 0)
         {
             if (node -> getRightNode () != nullptr)
-            {
                 node = node -> getRightNode ();
-            }
             else
             {
                 if (create)
-                    return node -> setRightNode (new Node (root_, data)) -> getData ();
+                    return node -> setRightNode (new Node (root_, data));
                 else
                     return nullptr;
             }
@@ -99,7 +95,7 @@ void* Node::search (void* data, bool create)
 
         else
         {
-            return node -> getData ();
+            return node;
         }
     }
 }

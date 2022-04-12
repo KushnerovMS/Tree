@@ -16,18 +16,18 @@ Node::Node (void* data, size_t dataSize, int (*cmp) (const void* a, const void* 
 
     root_ (new Root (this, dataSize, cmp))
 {
-    if (data == nullptr)
-        Logs.warn ("Tree::Node crt:: Data has null pointer");
-    else
+    if (dataSize > 0)
     {
-        if (dataSize > 0)
-        {
-            data_ = new char [dataSize];
+        data_ = new char [dataSize];
+
+        if (data)
             memcpy (data_, data, dataSize);
-        }
         else
-            data_ = data;
+            memset (data_, 0, dataSize);
+            
     }
+    else
+        data_ = data;
 
     if (root_ == nullptr)
     {
@@ -35,11 +35,6 @@ Node::Node (void* data, size_t dataSize, int (*cmp) (const void* a, const void* 
         abort ();
     }
 
-    if (this == nullptr)
-    {
-        Logs.error ("Node was not constructed");
-        abort ();
-    }
 }
 
 Node::Node (Root* root, void* data):
@@ -52,25 +47,16 @@ Node::Node (Root* root, void* data):
 {
     assert (root);
 
-    if (data == nullptr)
-        Logs.warn ("Node crt: Data_ has null pointer");
-    else
+    if (root -> getDataSize () > 0)
     {
-        if (root -> getDataSize () > 0)
-        {
-            data_ = new char [root_ -> getDataSize ()];
+        data_ = new char [root_ -> getDataSize ()];
+        if (data)
             memcpy (data_, data, root_ -> getDataSize ());
-        }
         else
-        
-            data_ = data;
+            memset (data_, 0, root_ -> getDataSize());
     }
-
-    if (this == nullptr)
-    {
-        Logs.error ("Node was not constructed");
-        abort ();
-    }
+    else
+        data_ = data;
 
     root -> incrSize ();
 }
