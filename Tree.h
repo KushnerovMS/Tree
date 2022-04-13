@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "lib/GraphDump.h"
+#include <kms/GraphDump.h>
 
 namespace Tree
 {

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../lib/GraphDump.h"
+#include <kms/GraphDump.h>
 
 #include "../Tree.h"
 

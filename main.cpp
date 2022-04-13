@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "lib/Logs.h"
+#include <kms/Logs.h>
 
 #include "Tree.h"
 

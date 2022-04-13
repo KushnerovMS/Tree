@@ -26,19 +26,18 @@ SOURCES=main.cpp						\
 		TreeError.cpp
 OBJDIR =./.obj
 OBJECTS=$(patsubst %.cpp, $(OBJDIR)/%.o, $(SOURCES))
-#OBJDIRS=$(sort 							\
-		$(addprefix $(OBJMAINDIR)/,		\
-		$(filter-out ./,				\
-		$(dir $(SOURCES))))				\
-		$(OBJMAINDIR))
 EXECUTABLE=Tree
 EXEDIR=./bin
-LIBRARIES=libLogs.a libGraphDump.a
-LIBDIR=./lib
+LIBRARIES=kms/libLogs.a kms/libGraphDump.a
+
+COMAPANY=kms
+
+LIBDIR=/lib
+HEADERDIR=/usr/include
 
 
 $(EXECUTABLE): $(OBJECTS) $(EXEDIR)
-	$(CXX) $(SANFLAGS) $(OBJECTS) -o $(EXEDIR)/$@ -L $(LIBDIR) $(patsubst lib%.a, -l%, $(LIBRARIES))
+	$(CXX) $(SANFLAGS) $(OBJECTS) -o $(EXEDIR)/$@ $(addprefix -L$(LIBDIR)/, $(sort $(dir $(LIBRARIES)))) $(patsubst lib%.a, -l%, $(notdir $(LIBRARIES)))
 
 
 $(OBJECTS) : $(OBJDIR)/%.o : %.cpp
@@ -48,12 +47,16 @@ $(OBJECTS) : $(OBJDIR)/%.o : %.cpp
 lib$(EXECUTABLE).a : $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
 	$(AR) r lib$(EXECUTABLE).a $(filter-out $(OBJDIR)/main.o, $(OBJECTS))
 
-#$(sort 							\
-$(addprefix $(OBJDIR)/,			\
-$(filter-out ./,				\
-$(dir $(SOURCES))))				\
-$(OBJDIR)/) : % :
-#	mkdir -p $@
+
+libInstall : lib$(EXECUTABLE).a $(LIBDIR)/$(COMAPANY)/ $(HEADERDIR)/$(COMAPANY)/
+	cp -f lib$(EXECUTABLE).a $(LIBDIR)/$(COMAPANY)/
+	cp -f $(EXECUTABLE).h 	 $(HEADERDIR)/$(COMAPANY)/
+
+$(LIBDIR)/$(COMAPANY)/ :
+	mkdir $(LIBDIR)/$(COMAPANY)/
+
+$(HEADERDIR)/$(COMAPANY)/ :
+	mkdir $(HEADERDIR)/$(COMAPANY)/
 
 
 $(EXEDIR) :

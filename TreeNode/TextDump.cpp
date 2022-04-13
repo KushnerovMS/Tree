@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../lib/Logs.h"
+#include <kms/Logs.h>
 
 #include "../Tree.h"
 
